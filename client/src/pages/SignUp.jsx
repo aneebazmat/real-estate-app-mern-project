@@ -1,5 +1,6 @@
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import GoogleOAuth from '../components/GoogleOAuth'
 
 function SignUp() {
   const [formData, setFormData] = React.useState({})
@@ -80,6 +81,7 @@ function SignUp() {
           >
             {loading ? 'Creating account...' : 'Sign Up'}
           </button>
+          <GoogleOAuth />
         </form>
 
         <div className='mt-5 flex items-center justify-center gap-2 text-sm'>

@@ -68,9 +68,52 @@ const signIn = catchAsyncErrors(async (req, res, next) => {
 });
 
 
+const googleAuthentication = catchAsyncErrors(async (req, res, next) => {
+    try {
+       const user = await User.findOne({ email: req.body.email });
+       if (user) {
+           const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+           const { password: pass, ...rest } = user._doc;
+           res.cookie("token", token, { httpOnly: true, expires: new Date(Date.now() + 24 * 60 * 60 * 1000), secure: true })
+               .status(200)
+               .json({
+                   success: true,
+                   message: "User logged in successfully",
+                   user: rest
+               });
+       }else{
+        const generatePassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+        const hashPassword = await bcrypt.hash(generatePassword, 10);
+        const baseName = req.body.name 
+            ? req.body.name.split(" ").join("").toLowerCase() 
+            : "user";
+        const user = await User.create({
+            name: baseName + Math.random().toString(36).slice(-4),
+            email: req.body.email,
+            password: hashPassword,
+            avatar: req.body.photo || undefined
+        });
+        await user.save();
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+        const { password: pass, ...rest } = user._doc;
+        res.cookie("token", token, { httpOnly: true, expires: new Date(Date.now() + 24 * 60 * 60 * 1000), secure: true })
+            .status(200)
+            .json({
+                success: true,
+                message: "User logged in successfully",
+                user: rest
+            });
+       }
+    }
+    catch (error) {
+        next(error);
+    }
+})
+
 
 
 module.exports = {
     signUp,
-    signIn
+    signIn,
+    googleAuthentication
 };
