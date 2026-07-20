@@ -52,9 +52,9 @@ const signIn = catchAsyncErrors(async (req, res, next) => {
         }
 
         const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
-        const { password: password1, ...rest } = validUser._doc;
+        const { password: password1, ...rest } = validUser.toObject();
 
-        res.cookie("token", token, { httpOnly: true, expires: new Date(Date.now() + 24 * 60 * 60 * 1000), secure: true })
+        res.cookie("token", token, { httpOnly: true, expires: new Date(Date.now() + 24 * 60 * 60 * 1000), secure: process.env.NODE_ENV === 'production' })
             .status(200)
             .json({
                 success: true,
@@ -73,8 +73,8 @@ const googleAuthentication = catchAsyncErrors(async (req, res, next) => {
        const user = await User.findOne({ email: req.body.email });
        if (user) {
            const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-           const { password: pass, ...rest } = user._doc;
-           res.cookie("token", token, { httpOnly: true, expires: new Date(Date.now() + 24 * 60 * 60 * 1000), secure: true })
+           const { password: pass, ...rest } = user.toObject();
+           res.cookie("token", token, { httpOnly: true, expires: new Date(Date.now() + 24 * 60 * 60 * 1000), secure: process.env.NODE_ENV === 'production' })
                .status(200)
                .json({
                    success: true,
@@ -94,15 +94,15 @@ const googleAuthentication = catchAsyncErrors(async (req, res, next) => {
             avatar: req.body.photo || undefined
         });
         await user.save();
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-        const { password: pass, ...rest } = user._doc;
-        res.cookie("token", token, { httpOnly: true, expires: new Date(Date.now() + 24 * 60 * 60 * 1000), secure: true })
-            .status(200)
-            .json({
-                success: true,
-                message: "User logged in successfully",
-                user: rest
-            });
+         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+         const { password: pass, ...rest } = user.toObject();
+         res.cookie("token", token, { httpOnly: true, expires: new Date(Date.now() + 24 * 60 * 60 * 1000), secure: process.env.NODE_ENV === 'production' })
+             .status(200)
+             .json({
+                 success: true,
+                 message: "User logged in successfully",
+                 user: rest
+             });
        }
     }
     catch (error) {
